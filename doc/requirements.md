@@ -7,6 +7,7 @@ The package balances analytical depth with accessibility:
 1. **Interactive Rich CLI**: A live terminal-based spectator and race-engineer interface with real-time leaderboard tickers, tire tracking, and incident commentary.
 2. **High-Speed Python API & Monte Carlo Engine**: A vectorized, seed-deterministic framework capable of simulating thousands of races per minute for strategy evaluation, counterfactual analysis, and predictive modeling.
 3. **Batteries-Included F1 Presets**: Pre-configured datasets for modern F1 teams, drivers, and iconic circuits, alongside full support for custom JSON/YAML configurations.
+4. **Automatic Tuning & Calibration**: Fit simulation parameters against historical race and practice/qualifying data (including real-world sources) before a race, and adaptively re-fit them from laps observed mid-race, so predictions track reality.
 
 ---
 
@@ -91,6 +92,9 @@ To keep the engine fast, predictable, and maintainable, explicit dynamic in-race
 - **`TireCompound`**: `compound_name`, `color_code`, `base_delta`, `wear_rate`, `cliff_lap`.
 - **`RaceConfig`**: `circuit`, `grid` (starting order and starting tires), `laps`, `seed`, `mandatory_two_compounds`.
 - **`LapResult` & `RaceResult`**: Complete time-series history of every driver's lap time, cumulative time, position, tire age, compound, gap to leader, interval to car ahead, and pit stop log.
+- **`LapObservation`**: A single observed lap from any session — `session` (`practice1|practice2|practice3|qualifying|race|live`), canonical `driver_id`, `team_id`, `lap`, `compound`, `lap_time` (seconds), and optional `fuel_remaining_kg`, `flag`, `position`, `stint`, `tire_age_at_lap_start`, plus a raw-source record for provenance.
+- **`TelemetryDataset`**: Ordered list of `LapObservation`s plus `circuit_id` metadata; validated at load with aliased column mapping (real-world exports tolerated) and clear errors for unknown drivers/teams or non-numeric lap times.
+- **`CalibrationConfig`**: A non-mutating **overlay** over bundled data — per-driver/team pace offsets, circuit base adjust, fuel penalty, and per-compound base-delta / wear / cliff adjustments — serialized to JSON and layered into a `RaceConfig` at build time.
 
 ### 3.2 Bundled Datasets (`f1_sim/data/`)
 - Pre-populated datasets representing modern 2024/2025 grid:
@@ -122,6 +126,20 @@ To keep the engine fast, predictable, and maintainable, explicit dynamic in-race
   ```
   - Displays a Rich progress bar.
   - Summarizes win rates, podium probabilities, average points, and optimal pit stop strategies.
+- **Automatic Tuning & Calibration**:
+  ```bash
+  # Offline: fit from historical/practice data (incl. real-world exports) and save an overlay
+  f1-sim tune --circuit monza --dataset practice/monza.csv --out calibration/monza.json --holdout 0.2
+
+  # Apply a saved calibration overlay to a race
+  f1-sim race --circuit monza --calibration calibration/monza.json
+
+  # In-race adaptive tuning with the live dashboard
+  f1-sim race --circuit monza --live --adaptive
+  ```
+  - `tune` reports fit diagnostics: residuals, in-sample RMSE, and holdout RMSE when `--holdout` is given.
+  - `race --calibration` layers the overlay onto the bundled preset without mutating it.
+  - `race --live --adaptive` re-calibrates from laps observed so far and re-forecasts remaining distance.
 
 ### 4.2 Post-Race Visualizations (`matplotlib`)
 - **Lap Chart**: Position progression per driver across all laps.
@@ -146,6 +164,22 @@ print(f"Winner: {results.winner.name} in {results.winner_total_time:.2f}s")
 results.plot_lap_chart(save_path="silverstone_lap_chart.png")
 ```
 
+Tuning & calibration API (see Section 6):
+```python
+from f1_sim import build_race_config
+from f1_sim.tuning import calibrate_from_dataset, load_dataset
+
+# Pre-race: offline calibration from historical/practice data (real-world CSV/JSON supported)
+dataset = load_dataset("data/practice_monza.csv")
+report = calibrate_from_dataset(dataset, circuit="monza")
+config = build_race_config("monza", calibration=report.config)
+
+# In-race: adaptively re-fit from laps completed so far
+engine = RaceEngine(config)
+engine.tune_from_observations(observed_lap_records)
+projection = engine.project_remaining_laps()
+```
+
 ---
 
 ## 5. Non-Functional Requirements & Performance Targets
@@ -157,10 +191,94 @@ results.plot_lap_chart(save_path="silverstone_lap_chart.png")
   - $\ge 85\%$ test coverage with `pytest`.
   - Comprehensive unit tests for fuel degradation monotonicity, tire wear cliff physics, pit lane delta application, and overtake probability calibration.
   - Strict type checking via Python 3.13 type annotations.
+  - **Tuning tests**: synthetic-data recovery (fit on generated ground truth recovers true parameters within tolerance), determinism of calibrations, constraint-preserving updates, and in-race tuner stability (no oscillation over a full race).
+- **Tuning Performance & Robustness**:
+  - Determinism: identical dataset + seed yields an identical `CalibrationConfig`.
+  - Runtime: offline fit over ~2,000 observations `< 5 s`; in-race per-lap update `< 1 ms`.
+  - Bounded online updates (per-lap step capped, e.g. ±5% of the previous estimate) to keep the system stable and explainable.
+  - Constraints preserved: tuned ratings remain in `[0, 100]` and all time deltas remain non-negative.
 
 ---
 
-## 6. Implementation Roadmap
+## 6. Automatic Tuning & Calibration
+
+### 6.1 Overview
+Automatic tuning recalibrates simulation parameters against observed telemetry so that predictions track reality, in two modes:
+
+1. **Offline (pre-race)** — fits a `CalibrationConfig` overlay against historical race and practice/qualifying data before a simulation starts. This is the core workflow and is implemented first.
+2. **Online (in-race)** — incrementally refines estimates from laps completed in the current race, improving forward projections for strategy and the live dashboard.
+
+The core lap-time model is a deterministic, additive combination `base + car_delta + driver_delta + fuel_delta + tire_delta (+ traffic + incident)`. Calibration exploits this linear structure via regularized least squares. Fits must be deterministic for a given dataset and seed. Stochastic machinery (overtake probability, incident/DNF probabilities, pit-stop variance) is **out of scope** and never auto-tuned.
+
+### 6.2 Tunable Parameters
+Tuning never mutates bundled datasets; it produces a `CalibrationConfig` **overlay** layered into a `RaceConfig`:
+
+| Parameter | Scope | Default source | Units |
+|---|---|---|---|
+| `driver_pace_offsets` | per driver | `Driver.pace_rating` | s/lap |
+| `team_pace_offsets` | per team | `Team` composite rating | s/lap |
+| `compound_base_deltas` | per compound | `TireCompound.base_delta` | s |
+| `compound_wear_multipliers` | per compound | `TireCompound.wear_rate` | ratio |
+| `compound_cliff_adjustments` | per compound | `TireCompound.cliff_lap` | laps |
+| `circuit_base_adjust` | circuit | `Circuit.base_lap_time` | s |
+| `tire_wear_factor_adjust` | circuit | `Circuit.tire_wear_factor` | ratio |
+| `fuel_penalty_per_kg` | global | `RaceConfig` (default `0.033`) | s/kg |
+
+### 6.3 Telemetry Datasets & Real Data Support
+A `TelemetryDataset` timestamps every observed lap via `LapObservation`:
+
+- **Canonical schema**: session (`practice1|practice2|practice3|qualifying|race|live`), driver id/code, team id, lap, compound, lap time (seconds), and optional fuel remaining (kg), flag, position, stint, and tire age at lap start.
+- **Real-world imports**: `load_dataset` accepts CSV/JSON exported from real data tooling and performs **aliased column mapping** (e.g. `LapNumber` → `lap`, `LapTime` → `lap_time`, `TyreLife`/`TyreAge` → `tire_age_at_lap_start`, `Compound` → `compound`, `Position` → `position`, driver number → canonical id where resolvable). Unknown drivers/teams and non-numeric lap times raise clear, actionable errors.
+- **Session filtering**: before fitting, non-green-flag laps and outliers (e.g. pit in/out laps, laps under VSC/SC) are excluded or down-weighted; qualifying and race data may be confidently weighted per user config.
+
+### 6.4 Offline Calibration (Pre-Race)
+- `calibrate_from_dataset(dataset, circuit, scope) -> CalibrationReport`.
+- Regularized least squares minimizing squared error on filtered green-flag observations for the target circuit, with ridge-style penalties toward bundled defaults to avoid over-fitting sparse practice sessions.
+- Report includes per-observation residuals, in-sample RMSE, parameter ranges, and — when `holdout` is set — out-of-sample RMSE on the held-out fraction.
+- Emits a persisted `CalibrationConfig` JSON accepted by `build_race_config(..., calibration=...)` and the CLI `race --calibration` / existing batch flows.
+
+### 6.5 Online Tuning (In-Race)
+- `RaceEngine.tune_from_observations(records)` ingests completed laps and applies **bounded** updates (per-lap step capped, e.g. ±5% of the previous estimate) to driver pace offsets, per-compound wear/cliff parameters, and circuit base drift.
+- Updated estimates immediately re-forecast remaining-lap projections consumed by the strategy planner and the live Rich dashboard (revised ETAs, tire-aging warnings).
+- Must remain stable — no oscillation across a full race (validated by tests).
+
+### 6.6 Python API
+```python
+from f1_sim import build_race_config
+from f1_sim.tuning import calibrate_from_dataset, load_dataset
+
+# Pre-race: offline calibration from historical/practice data (real-world CSV/JSON supported)
+dataset = load_dataset("data/practice_monza.csv")
+report = calibrate_from_dataset(dataset, circuit="monza")
+config = build_race_config("monza", calibration=report.config)
+
+# In-race: adaptively re-fit from laps completed so far
+engine = RaceEngine(config)
+engine.tune_from_observations(observed_lap_records)
+projection = engine.project_remaining_laps()
+```
+
+### 6.7 CLI
+```bash
+# Offline: fit from historical/practice data (incl. real-world exports) and save an overlay
+f1-sim tune --circuit monza --dataset practice/monza.csv --out calibration/monza.json --holdout 0.2
+
+# Apply a saved calibration overlay to a race
+f1-sim race --circuit monza --calibration calibration/monza.json
+
+# In-race adaptive tuning with the live dashboard
+f1-sim race --circuit monza --live --adaptive
+```
+
+### 6.8 Non-Functional Requirements & Validation
+- Determinism: identical dataset + seed yields an identical `CalibrationConfig`.
+- Runtime: offline fit over ~2,000 observations `< 5 s`; in-race per-lap update `< 1 ms`.
+- Robustness: bounded online updates; constraints preserved (ratings stay in `[0, 100]`, deltas non-negative).
+- Tests: synthetic-data recovery (fit on generated ground truth recovers true parameters within tolerance), calibration determinism, constraint enforcement, and in-race tuner stability over a full race.
+
+---
+
+## 7. Implementation Roadmap
 
 ```mermaid
 flowchart TD
@@ -169,6 +287,7 @@ flowchart TD
     M3 --> M4["Milestone 4: Strategy, Pit Stops & Safety Cars"]
     M4 --> M5["Milestone 5: Rich Live CLI & Matplotlib Plots"]
     M5 --> M6["Milestone 6: Monte Carlo Batch Engine & CLI"]
+    M6 --> M7["Milestone 7: Automatic Tuning & Calibration"]
 ```
 
 1. **Milestone 1: Domain Schemas & Preset Data**
@@ -191,3 +310,8 @@ flowchart TD
 6. **Milestone 6: Monte Carlo & Batch Optimization**
    - Multiprocessed batch simulation runner.
    - CLI batch command with probability distributions and summary reports.
+7. **Milestone 7: Automatic Tuning & Calibration** (see Section 6)
+   - Telemetry dataset schema + loaders supporting self-described JSON/CSV and aliased real-world exports (e.g. FastF1/ergast-style columns).
+   - Offline regularized least-squares calibrator producing a persisted `CalibrationConfig` overlay, with holdout metric.
+   - In-race bounded adaptive tuner with re-forecasting hooks into strategy and the live dashboard.
+   - CLI `tune` command and `race --calibration` / `race --live --adaptive` integration.
