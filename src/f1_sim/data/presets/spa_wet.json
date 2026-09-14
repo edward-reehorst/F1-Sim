@@ -1,0 +1,39 @@
+{
+  "name": "Spa Wet Grand Prix Preset",
+  "description": "Wet race configuration preset for Spa-Francorchamps with Intermediate tires and modified pace parameters",
+  "mandatory_two_compounds": false,
+  "circuit_override": {
+    "id": "spa_wet",
+    "name": "Circuit de Spa-Francorchamps (Wet)",
+    "country": "Belgium",
+    "total_laps": 44,
+    "base_lap_time": 118.500,
+    "overtaking_difficulty": 0.65,
+    "tire_wear_factor": 1.10,
+    "pit_transit_loss": 25.5,
+    "safety_car_pit_loss": 14.5,
+    "fuel_burn_per_lap": 2.15
+  },
+  "grid": [
+    {"driver_id": "verstappen", "team_id": "red_bull", "starting_position": 1, "starting_tire": "Intermediate"},
+    {"driver_id": "norris", "team_id": "mclaren", "starting_position": 2, "starting_tire": "Intermediate"},
+    {"driver_id": "leclerc", "team_id": "ferrari", "starting_position": 3, "starting_tire": "Intermediate"},
+    {"driver_id": "piastri", "team_id": "mclaren", "starting_position": 4, "starting_tire": "Intermediate"},
+    {"driver_id": "sainz", "team_id": "ferrari", "starting_position": 5, "starting_tire": "Intermediate"},
+    {"driver_id": "russell", "team_id": "mercedes", "starting_position": 6, "starting_tire": "Intermediate"},
+    {"driver_id": "hamilton", "team_id": "mercedes", "starting_position": 7, "starting_tire": "Intermediate"},
+    {"driver_id": "perez", "team_id": "red_bull", "starting_position": 8, "starting_tire": "Intermediate"},
+    {"driver_id": "alonso", "team_id": "aston_martin", "starting_position": 9, "starting_tire": "Intermediate"},
+    {"driver_id": "tsunoda", "team_id": "rb", "starting_position": 10, "starting_tire": "Intermediate"},
+    {"driver_id": "hulkenberg", "team_id": "haas", "starting_position": 11, "starting_tire": "Intermediate"},
+    {"driver_id": "albon", "team_id": "williams", "starting_position": 12, "starting_tire": "Intermediate"},
+    {"driver_id": "stroll", "team_id": "aston_martin", "starting_position": 13, "starting_tire": "Intermediate"},
+    {"driver_id": "ricciardo", "team_id": "rb", "starting_position": 14, "starting_tire": "Intermediate"},
+    {"driver_id": "gasly", "team_id": "alpine", "starting_position": 15, "starting_tire": "Intermediate"},
+    {"driver_id": "ocon", "team_id": "alpine", "starting_position": 16, "starting_tire": "Intermediate"},
+    {"driver_id": "magnussen", "team_id": "haas", "starting_position": 17, "starting_tire": "Intermediate"},
+    {"driver_id": "bottas", "team_id": "sauber", "starting_position": 18, "starting_tire": "Intermediate"},
+    {"driver_id": "sargeant", "team_id": "williams", "starting_position": 19, "starting_tire": "Intermediate"},
+    {"driver_id": "zhou", "team_id": "sauber", "starting_position": 20, "starting_tire": "Intermediate"}
+  ]
+}

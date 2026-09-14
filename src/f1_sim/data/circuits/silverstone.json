@@ -1,0 +1,12 @@
+{
+  "id": "silverstone",
+  "name": "Silverstone Circuit",
+  "country": "United Kingdom",
+  "total_laps": 52,
+  "base_lap_time": 88.500,
+  "overtaking_difficulty": 0.45,
+  "tire_wear_factor": 1.35,
+  "pit_transit_loss": 22.0,
+  "safety_car_pit_loss": 12.0,
+  "fuel_burn_per_lap": 1.95
+}

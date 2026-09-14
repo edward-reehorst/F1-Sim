@@ -1,0 +1,12 @@
+{
+  "id": "monza",
+  "name": "Autodromo Nazionale Monza",
+  "country": "Italy",
+  "total_laps": 53,
+  "base_lap_time": 81.046,
+  "overtaking_difficulty": 0.25,
+  "tire_wear_factor": 0.90,
+  "pit_transit_loss": 21.0,
+  "safety_car_pit_loss": 11.5,
+  "fuel_burn_per_lap": 1.85
+}

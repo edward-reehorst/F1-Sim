@@ -1,0 +1,162 @@
+[
+  {
+    "id": "verstappen",
+    "name": "Max Verstappen",
+    "code": "VER",
+    "number": 1,
+    "pace_rating": 98.0,
+    "tire_management": 94.0
+  },
+  {
+    "id": "perez",
+    "name": "Sergio Perez",
+    "code": "PER",
+    "number": 11,
+    "pace_rating": 89.0,
+    "tire_management": 88.0
+  },
+  {
+    "id": "norris",
+    "name": "Lando Norris",
+    "code": "NOR",
+    "number": 4,
+    "pace_rating": 96.5,
+    "tire_management": 91.0
+  },
+  {
+    "id": "piastri",
+    "name": "Oscar Piastri",
+    "code": "PIA",
+    "number": 81,
+    "pace_rating": 94.5,
+    "tire_management": 89.0
+  },
+  {
+    "id": "leclerc",
+    "name": "Charles Leclerc",
+    "code": "LEC",
+    "number": 16,
+    "pace_rating": 96.5,
+    "tire_management": 90.0
+  },
+  {
+    "id": "sainz",
+    "name": "Carlos Sainz",
+    "code": "SAI",
+    "number": 55,
+    "pace_rating": 94.0,
+    "tire_management": 91.5
+  },
+  {
+    "id": "hamilton",
+    "name": "Lewis Hamilton",
+    "code": "HAM",
+    "number": 44,
+    "pace_rating": 95.0,
+    "tire_management": 93.0
+  },
+  {
+    "id": "russell",
+    "name": "George Russell",
+    "code": "RUS",
+    "number": 63,
+    "pace_rating": 94.5,
+    "tire_management": 89.5
+  },
+  {
+    "id": "alonso",
+    "name": "Fernando Alonso",
+    "code": "ALO",
+    "number": 14,
+    "pace_rating": 94.0,
+    "tire_management": 93.5
+  },
+  {
+    "id": "stroll",
+    "name": "Lance Stroll",
+    "code": "STR",
+    "number": 18,
+    "pace_rating": 87.0,
+    "tire_management": 84.0
+  },
+  {
+    "id": "tsunoda",
+    "name": "Yuki Tsunoda",
+    "code": "TSU",
+    "number": 22,
+    "pace_rating": 89.5,
+    "tire_management": 86.0
+  },
+  {
+    "id": "ricciardo",
+    "name": "Daniel Ricciardo",
+    "code": "RIC",
+    "number": 3,
+    "pace_rating": 88.5,
+    "tire_management": 87.0
+  },
+  {
+    "id": "hulkenberg",
+    "name": "Nico Hulkenberg",
+    "code": "HUL",
+    "number": 27,
+    "pace_rating": 90.0,
+    "tire_management": 86.5
+  },
+  {
+    "id": "magnussen",
+    "name": "Kevin Magnussen",
+    "code": "MAG",
+    "number": 20,
+    "pace_rating": 87.5,
+    "tire_management": 85.0
+  },
+  {
+    "id": "gasly",
+    "name": "Pierre Gasly",
+    "code": "GAS",
+    "number": 10,
+    "pace_rating": 89.0,
+    "tire_management": 87.0
+  },
+  {
+    "id": "ocon",
+    "name": "Esteban Ocon",
+    "code": "OCO",
+    "number": 31,
+    "pace_rating": 88.5,
+    "tire_management": 87.5
+  },
+  {
+    "id": "albon",
+    "name": "Alexander Albon",
+    "code": "ALB",
+    "number": 23,
+    "pace_rating": 90.5,
+    "tire_management": 88.5
+  },
+  {
+    "id": "sargeant",
+    "name": "Logan Sargeant",
+    "code": "SAR",
+    "number": 2,
+    "pace_rating": 84.0,
+    "tire_management": 82.0
+  },
+  {
+    "id": "bottas",
+    "name": "Valtteri Bottas",
+    "code": "BOT",
+    "number": 77,
+    "pace_rating": 89.0,
+    "tire_management": 88.0
+  },
+  {
+    "id": "zhou",
+    "name": "Guanyu Zhou",
+    "code": "ZHO",
+    "number": 24,
+    "pace_rating": 86.0,
+    "tire_management": 85.0
+  }
+]

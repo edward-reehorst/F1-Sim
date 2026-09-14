@@ -1,0 +1,42 @@
+[
+  {
+    "compound_name": "Soft",
+    "color_code": "red",
+    "base_delta": 0.0,
+    "wear_rate": 0.080,
+    "cliff_lap": 18,
+    "cliff_penalty_factor": 0.15
+  },
+  {
+    "compound_name": "Medium",
+    "color_code": "yellow",
+    "base_delta": 0.55,
+    "wear_rate": 0.045,
+    "cliff_lap": 28,
+    "cliff_penalty_factor": 0.15
+  },
+  {
+    "compound_name": "Hard",
+    "color_code": "white",
+    "base_delta": 1.10,
+    "wear_rate": 0.025,
+    "cliff_lap": 42,
+    "cliff_penalty_factor": 0.15
+  },
+  {
+    "compound_name": "Intermediate",
+    "color_code": "green",
+    "base_delta": 4.50,
+    "wear_rate": 0.035,
+    "cliff_lap": 32,
+    "cliff_penalty_factor": 0.15
+  },
+  {
+    "compound_name": "Wet",
+    "color_code": "blue",
+    "base_delta": 9.00,
+    "wear_rate": 0.025,
+    "cliff_lap": 35,
+    "cliff_penalty_factor": 0.15
+  }
+]

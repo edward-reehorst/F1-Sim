@@ -1,0 +1,102 @@
+[
+  {
+    "id": "red_bull",
+    "name": "Oracle Red Bull Racing",
+    "engine_power": 96.0,
+    "aero_efficiency": 97.0,
+    "mechanical_grip": 95.0,
+    "reliability": 0.97,
+    "pit_crew_speed": 2.15,
+    "pit_crew_consistency": 92.0
+  },
+  {
+    "id": "mclaren",
+    "name": "McLaren Formula 1 Team",
+    "engine_power": 95.0,
+    "aero_efficiency": 97.5,
+    "mechanical_grip": 96.0,
+    "reliability": 0.98,
+    "pit_crew_speed": 2.25,
+    "pit_crew_consistency": 90.0
+  },
+  {
+    "id": "ferrari",
+    "name": "Scuderia Ferrari",
+    "engine_power": 96.0,
+    "aero_efficiency": 95.5,
+    "mechanical_grip": 96.0,
+    "reliability": 0.96,
+    "pit_crew_speed": 2.30,
+    "pit_crew_consistency": 88.0
+  },
+  {
+    "id": "mercedes",
+    "name": "Mercedes-AMG PETRONAS F1 Team",
+    "engine_power": 95.0,
+    "aero_efficiency": 94.0,
+    "mechanical_grip": 94.5,
+    "reliability": 0.98,
+    "pit_crew_speed": 2.40,
+    "pit_crew_consistency": 89.0
+  },
+  {
+    "id": "aston_martin",
+    "name": "Aston Martin Aramco F1 Team",
+    "engine_power": 94.0,
+    "aero_efficiency": 91.0,
+    "mechanical_grip": 91.0,
+    "reliability": 0.97,
+    "pit_crew_speed": 2.50,
+    "pit_crew_consistency": 85.0
+  },
+  {
+    "id": "rb",
+    "name": "Visa Cash App RB F1 Team",
+    "engine_power": 94.0,
+    "aero_efficiency": 90.5,
+    "mechanical_grip": 90.0,
+    "reliability": 0.96,
+    "pit_crew_speed": 2.60,
+    "pit_crew_consistency": 84.0
+  },
+  {
+    "id": "haas",
+    "name": "MoneyGram Haas F1 Team",
+    "engine_power": 94.5,
+    "aero_efficiency": 89.5,
+    "mechanical_grip": 90.0,
+    "reliability": 0.95,
+    "pit_crew_speed": 2.70,
+    "pit_crew_consistency": 82.0
+  },
+  {
+    "id": "alpine",
+    "name": "BWT Alpine F1 Team",
+    "engine_power": 92.0,
+    "aero_efficiency": 89.0,
+    "mechanical_grip": 89.0,
+    "reliability": 0.95,
+    "pit_crew_speed": 2.75,
+    "pit_crew_consistency": 83.0
+  },
+  {
+    "id": "williams",
+    "name": "Williams Racing",
+    "engine_power": 94.0,
+    "aero_efficiency": 89.0,
+    "mechanical_grip": 88.5,
+    "reliability": 0.96,
+    "pit_crew_speed": 2.55,
+    "pit_crew_consistency": 86.0
+  },
+  {
+    "id": "sauber",
+    "name": "Stake F1 Team Kick Sauber",
+    "engine_power": 93.0,
+    "aero_efficiency": 87.5,
+    "mechanical_grip": 88.0,
+    "reliability": 0.94,
+    "pit_crew_speed": 3.20,
+    "pit_crew_consistency": 75.0
+  }
+]

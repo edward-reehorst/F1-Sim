@@ -1,0 +1,12 @@
+{
+  "id": "monaco",
+  "name": "Circuit de Monaco",
+  "country": "Monaco",
+  "total_laps": 78,
+  "base_lap_time": 74.000,
+  "overtaking_difficulty": 0.95,
+  "tire_wear_factor": 0.65,
+  "pit_transit_loss": 20.0,
+  "safety_car_pit_loss": 10.5,
+  "fuel_burn_per_lap": 1.45
+}
