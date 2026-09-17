@@ -571,6 +571,9 @@ def _build_app() -> typer.Typer:
         ),
         incidents: bool = typer.Option(True, "--incidents/--no-incidents", help="Enable Safety Cars/DNFs in search races"),
         laps: int | None = typer.Option(None, "--laps", "-l", help="Race laps for search races (defaults to full distance)"),
+        skip_circuits: str = typer.Option(
+            "monaco", "--skip-circuits", help="Comma-separated circuits excluded from the match (kept at their manually calibrated thresholds)"
+        ),
         out: str = typer.Option(None, "--out", help="Write matched thresholds JSON to this path"),
         apply: bool = typer.Option(
             False, "--apply", help="Write matched thresholds into the bundled circuit JSONs (and scale spa_wet)"
@@ -609,7 +612,11 @@ def _build_app() -> typer.Typer:
         table.add_column("Sim/race", justify="right")
         table.add_column("Converged")
         results: dict[str, dict] = {}
+        skip_ids = {c.strip().lower() for c in skip_circuits.split(",") if c.strip()}
         for circuit_id in sorted(targets):
+            if circuit_id in skip_ids:
+                console.print(f"[dim]Skipping {circuit_id} (manual threshold; excluded from the match)[/dim]")
+                continue
             stat_data = stats_payload["circuits"][circuit_id]
             n_races = int(stat_data["n_races"])
             n_overtakes = int(stat_data["n_overtakes"])
