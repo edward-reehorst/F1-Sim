@@ -1,0 +1,42 @@
+{
+  "start_season": 2018,
+  "end_season": 2026,
+  "method": {
+    "aggregator": "median",
+    "quantile": null,
+    "window_before": 3,
+    "window_after": 3,
+    "min_window_laps": 3,
+    "include_pass_lap": false
+  },
+  "circuits": {
+    "silverstone": {
+      "n_races": 9,
+      "n_overtakes": 116,
+      "q1_seconds": 0.22749999999999915,
+      "median_seconds": 0.5210000000000008,
+      "q3_seconds": 1.0308750000000035
+    },
+    "spa": {
+      "n_races": 8,
+      "n_overtakes": 145,
+      "q1_seconds": 0.4405000000000001,
+      "median_seconds": 0.7764999999999986,
+      "q3_seconds": 1.1739999999999995
+    },
+    "monaco": {
+      "n_races": 7,
+      "n_overtakes": 15,
+      "q1_seconds": 0.6289999999999907,
+      "median_seconds": 1.2920000000000016,
+      "q3_seconds": 2.4622499999999974
+    },
+    "monza": {
+      "n_races": 8,
+      "n_overtakes": 164,
+      "q1_seconds": 0.2502500000000012,
+      "median_seconds": 0.5912500000000023,
+      "q3_seconds": 1.124624999999991
+    }
+  }
+}

@@ -14,7 +14,6 @@ from f1_sim.engine.time_trial import TimeTrialResult, run_time_trial
 from f1_sim.engine.traffic import (
     OvertakeEvent,
     compute_overtake_probability,
-    compute_overtake_threshold,
     evaluate_overtake,
 )
 
@@ -31,7 +30,6 @@ __all__ = [
     "compute_clean_air_lap_time_breakdown",
     "compute_fuel_delta",
     "compute_overtake_probability",
-    "compute_overtake_threshold",
     "compute_tire_delta",
     "evaluate_overtake",
     "run_time_trial",

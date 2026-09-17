@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 from f1_sim.engine.car_state import CarState
 from f1_sim.engine.physics import LapTimeBreakdown
+from f1_sim.models.calibration import CalibrationConfig
 from f1_sim.models.circuit import Circuit
 from f1_sim.models.driver import Driver
 from f1_sim.models.results import DriverLapRecord
@@ -32,8 +33,13 @@ def run_time_trial(
     laps: int | None = None,
     initial_fuel_kg: float | None = None,
     fuel_penalty_per_kg: float = 0.033,
+    calibration: CalibrationConfig | None = None,
 ) -> TimeTrialResult:
-    """Run a single car in clean air over a specified number of laps."""
+    """Run a single car in clean air over a specified number of laps.
+
+    An optional ``calibration`` overlay layers tuned corrections onto the bundled
+    physics defaults (see f1_sim.tuning).
+    """
     total_laps = laps if laps is not None else circuit.total_laps
 
     if initial_fuel_kg is None:
@@ -56,6 +62,7 @@ def run_time_trial(
         rec, breakdown = car_state.simulate_clean_air_lap(
             circuit=circuit,
             fuel_penalty_per_kg=fuel_penalty_per_kg,
+            calibration=calibration,
         )
         records.append(rec)
         breakdowns.append(breakdown)

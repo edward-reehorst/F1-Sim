@@ -1,0 +1,42 @@
+{
+  "preset": "2024_default",
+  "seeds": 5,
+  "tolerance": 1.0,
+  "incidents": true,
+  "laps": null,
+  "circuits": {
+    "monaco": {
+      "n_races": 7,
+      "n_overtakes": 15,
+      "target_per_race": 2.142857142857143,
+      "threshold_seconds": 3.5,
+      "achieved_per_race": 0.0,
+      "converged": false,
+      "source": "manual"
+    },
+    "monza": {
+      "n_races": 8,
+      "n_overtakes": 164,
+      "target_per_race": 20.5,
+      "threshold_seconds": 0.7031,
+      "achieved_per_race": 20.0,
+      "converged": true
+    },
+    "silverstone": {
+      "n_races": 9,
+      "n_overtakes": 116,
+      "target_per_race": 12.88888888888889,
+      "threshold_seconds": 0.8008,
+      "achieved_per_race": 12.2,
+      "converged": true
+    },
+    "spa": {
+      "n_races": 8,
+      "n_overtakes": 145,
+      "target_per_race": 18.125,
+      "threshold_seconds": 0.7812,
+      "achieved_per_race": 18.4,
+      "converged": true
+    }
+  }
+}

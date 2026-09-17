@@ -15,10 +15,9 @@ class Circuit(BaseModel):
         le=180.0,
         description="Clean-air baseline benchmark lap time in seconds under ideal conditions.",
     )
-    overtaking_difficulty: float = Field(
+    overtake_threshold_seconds: float = Field(
         ge=0.0,
-        le=1.0,
-        description="Overtaking difficulty index between 0.0 (very easy, e.g. Monza) and 1.0 (nearly impossible, e.g. Monaco).",
+        description="Pace gap (seconds) required before a trailing car is likely to pass; lower = easier overtaking (Monza), higher = harder (Monaco).",
     )
     tire_wear_factor: float = Field(
         default=1.0,

@@ -6,6 +6,7 @@ from f1_sim.engine.physics import (
     LapTimeBreakdown,
     compute_clean_air_lap_time_breakdown,
 )
+from f1_sim.models.calibration import CalibrationConfig
 from f1_sim.models.circuit import Circuit
 from f1_sim.models.driver import Driver
 from f1_sim.models.results import DriverLapRecord, PitStopRecord
@@ -65,6 +66,7 @@ class CarState(BaseModel):
         fuel_penalty_per_kg: float = 0.033,
         pit_time_loss: float = 0.0,
         in_pit: bool = False,
+        calibration: CalibrationConfig | None = None,
     ) -> tuple[DriverLapRecord, LapTimeBreakdown]:
         """Simulate a single lap in clean air, updating fuel, tire age, and cumulative time."""
         breakdown = compute_clean_air_lap_time_breakdown(
@@ -75,6 +77,7 @@ class CarState(BaseModel):
             tire_age=self.tire_age,
             fuel_mass_kg=self.fuel_remaining_kg,
             fuel_penalty_per_kg=fuel_penalty_per_kg,
+            calibration=calibration,
         )
 
         lap_time = breakdown.total_time + pit_time_loss

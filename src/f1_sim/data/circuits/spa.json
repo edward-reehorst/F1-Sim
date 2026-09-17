@@ -3,10 +3,10 @@
   "name": "Circuit de Spa-Francorchamps",
   "country": "Belgium",
   "total_laps": 44,
-  "base_lap_time": 104.500,
-  "overtaking_difficulty": 0.35,
-  "tire_wear_factor": 1.20,
+  "base_lap_time": 104.5,
+  "tire_wear_factor": 1.2,
   "pit_transit_loss": 23.5,
   "safety_car_pit_loss": 13.0,
-  "fuel_burn_per_lap": 2.20
+  "fuel_burn_per_lap": 2.2,
+  "overtake_threshold_seconds": 0.7812
 }

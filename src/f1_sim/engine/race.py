@@ -211,6 +211,7 @@ class RaceEngine:
                 tire_age=car.tire_age,
                 fuel_mass_kg=car.fuel_remaining_kg,
                 fuel_penalty_per_kg=self.config.fuel_penalty_per_kg,
+                calibration=self.config.calibration,
             )
 
             if is_sc:
@@ -255,14 +256,18 @@ class RaceEngine:
 
                 if can_challenge and pace_delta > 0 and neither_in_pit:
                     roll = self.rng.random()
+                    threshold = (
+                        self.config.overtake_threshold_seconds
+                        if self.config.overtake_threshold_seconds is not None
+                        else self.circuit.overtake_threshold_seconds
+                    )
                     success, event = evaluate_overtake(
                         lap=self.current_lap,
                         attacker_id=behind_id,
                         defender_id=ahead_id,
                         position=i,
                         pace_delta=pace_delta,
-                        circuit_difficulty=self.circuit.overtaking_difficulty,
-                        base_threshold=self.config.overtake_threshold_seconds,
+                        threshold=threshold,
                         rng_value=roll,
                     )
                     self.overtake_events.append(event)

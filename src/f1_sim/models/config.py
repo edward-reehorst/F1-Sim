@@ -2,6 +2,7 @@
 
 from pydantic import BaseModel, Field, model_validator
 
+from f1_sim.models.calibration import CalibrationConfig
 from f1_sim.models.circuit import Circuit
 
 
@@ -19,6 +20,10 @@ class RaceConfig(BaseModel):
 
     circuit: Circuit = Field(description="Circuit specification for this event")
     grid: list[GridEntry] = Field(description="List of cars / drivers on the starting grid")
+    calibration: CalibrationConfig | None = Field(
+        default=None,
+        description="Tuning/calibration overlay layered onto bundled defaults without mutating them.",
+    )
     laps: int | None = Field(
         default=None,
         ge=1,
@@ -53,10 +58,10 @@ class RaceConfig(BaseModel):
         le=2.5,
         description="Tire degradation rate multiplier when following in dirty air.",
     )
-    overtake_threshold_seconds: float = Field(
-        default=0.35,
+    overtake_threshold_seconds: float | None = Field(
+        default=None,
         ge=0.0,
-        description="Baseline pace delta required between cars to trigger overtake probability.",
+        description="Optional override of the circuit's pace delta required to trigger overtake probability (None = use the circuit value).",
     )
     dirty_air_distance_seconds: float = Field(
         default=1.5,

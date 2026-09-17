@@ -2,6 +2,7 @@
 
 from pydantic import BaseModel, Field
 
+from f1_sim.models.calibration import CalibrationConfig
 from f1_sim.models.circuit import Circuit
 from f1_sim.models.driver import Driver
 from f1_sim.models.team import Team
@@ -49,16 +50,25 @@ def compute_clean_air_lap_time_breakdown(
     tire_age: int,
     fuel_mass_kg: float,
     fuel_penalty_per_kg: float = 0.033,
+    calibration: CalibrationConfig | None = None,
 ) -> LapTimeBreakdown:
-    """Compute the full deterministic clean-air lap time and its breakdown components."""
-    base_time = circuit.base_lap_time
-    car_delta = team.car_delta_seconds
-    driver_delta = driver.pace_delta_seconds
-    fuel_delta = compute_fuel_delta(fuel_mass_kg, fuel_penalty_per_kg)
+    """Compute the full deterministic clean-air lap time and its breakdown components.
+
+    An optional ``calibration`` overlay layers additive/multiplicative corrections
+    on top of the bundled circuit/team/driver/tire defaults without mutating them.
+    """
+    cal = calibration
+    base_time = cal.adjusted_base_time(circuit.base_lap_time) if cal else circuit.base_lap_time
+    car_delta = team.car_delta_seconds + (cal.team_offset(team.id) if cal else 0.0)
+    driver_delta = driver.pace_delta_seconds + (cal.driver_offset(driver.id) if cal else 0.0)
+    effective_penalty = cal.adjusted_fuel_penalty(fuel_penalty_per_kg) if cal else fuel_penalty_per_kg
+    fuel_delta = compute_fuel_delta(fuel_mass_kg, effective_penalty)
+    wear_factor = cal.adjusted_circuit_wear_factor(circuit.tire_wear_factor) if cal else circuit.tire_wear_factor
+    effective_tire = cal.effective_tire(tire) if cal else tire
     tire_delta = compute_tire_delta(
-        compound=tire,
+        compound=effective_tire,
         tire_age=tire_age,
-        circuit_wear_factor=circuit.tire_wear_factor,
+        circuit_wear_factor=wear_factor,
         driver_wear_multiplier=driver.tire_wear_multiplier,
     )
 
@@ -82,6 +92,7 @@ def compute_clean_air_lap_time(
     tire_age: int,
     fuel_mass_kg: float,
     fuel_penalty_per_kg: float = 0.033,
+    calibration: CalibrationConfig | None = None,
 ) -> float:
     """Compute clean air lap time directly in seconds."""
     return compute_clean_air_lap_time_breakdown(
@@ -92,4 +103,5 @@ def compute_clean_air_lap_time(
         tire_age=tire_age,
         fuel_mass_kg=fuel_mass_kg,
         fuel_penalty_per_kg=fuel_penalty_per_kg,
+        calibration=calibration,
     ).total_time

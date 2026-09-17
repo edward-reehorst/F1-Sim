@@ -17,19 +17,6 @@ class OvertakeEvent(BaseModel):
     description: str = Field(description="Human-readable summary of the event")
 
 
-def compute_overtake_threshold(
-    circuit_overtaking_difficulty: float,
-    base_threshold_seconds: float = 0.35,
-) -> float:
-    """Calculate the pace delta required to launch a competitive overtake attempt.
-
-    Formula: threshold = base_threshold * (1.0 + circuit_difficulty)
-    At easy circuits (Monza ~0.25): threshold = 0.35 * 1.25 = 0.4375s
-    At hard circuits (Monaco ~0.95): threshold = 0.35 * 1.95 = 0.6825s
-    """
-    return base_threshold_seconds * (1.0 + circuit_overtaking_difficulty)
-
-
 def compute_overtake_probability(
     pace_delta: float,
     threshold: float,
@@ -56,16 +43,11 @@ def evaluate_overtake(
     defender_id: str,
     position: int,
     pace_delta: float,
-    circuit_difficulty: float,
-    base_threshold: float,
+    threshold: float,
     rng_value: float,
     sensitivity: float = 8.0,
 ) -> tuple[bool, OvertakeEvent]:
     """Evaluate whether an overtake attempt succeeds given the pace delta and an RNG roll [0, 1)."""
-    threshold = compute_overtake_threshold(
-        circuit_overtaking_difficulty=circuit_difficulty,
-        base_threshold_seconds=base_threshold,
-    )
     prob = compute_overtake_probability(
         pace_delta=pace_delta,
         threshold=threshold,

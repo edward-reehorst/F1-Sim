@@ -3,11 +3,41 @@
 import json
 from pathlib import Path
 
+from f1_sim.models.calibration import CalibrationConfig, GridSlot
 from f1_sim.models.circuit import Circuit
 from f1_sim.models.config import GridEntry, RaceConfig
 from f1_sim.models.driver import Driver
 from f1_sim.models.team import Team
 from f1_sim.models.tire import TireCompound
+
+
+def _apply_calibration_grid(preset_grid: list[GridEntry], starting_grid: list[GridSlot]) -> list[GridEntry]:
+    """Replace the preset grid with a qualifying grid.
+
+    Qualifying slots keep their real positions/teams; bundled drivers absent from
+    the qualifying data are appended behind them in preset order (same team and
+    starting tire) so the grid stays full.
+    """
+    preset_by_driver = {e.driver_id: e for e in preset_grid}
+    grid: list[GridEntry] = [
+        GridEntry(
+            driver_id=slot.driver_id,
+            team_id=slot.team_id,
+            starting_position=slot.position,
+            starting_tire=preset_by_driver[slot.driver_id].starting_tire
+            if slot.driver_id in preset_by_driver
+            else "Medium",
+        )
+        for slot in sorted(starting_grid, key=lambda s: s.position)
+    ]
+    covered = {e.driver_id for e in grid}
+    tail = len(grid)
+    for entry in sorted(preset_grid, key=lambda e: e.starting_position):
+        if entry.driver_id in covered:
+            continue
+        tail += 1
+        grid.append(entry.model_copy(update={"starting_position": tail}))
+    return grid
 
 
 def get_data_dir() -> Path:
@@ -118,8 +148,13 @@ def build_race_config(
     preset_name: str = "2024_default",
     laps: int | None = None,
     seed: int = 42,
+    calibration: CalibrationConfig | None = None,
 ) -> RaceConfig:
-    """Construct a full RaceConfig from a circuit and a preset."""
+    """Construct a full RaceConfig from a circuit and a preset.
+
+    An optional ``calibration`` overlay is layered onto the bundled preset without
+    mutating it (see f1_sim.tuning).
+    """
     preset_data = load_preset(preset_name)
 
     if isinstance(circuit_name_or_circuit, Circuit):
@@ -134,10 +169,19 @@ def build_race_config(
     grid = [GridEntry.model_validate(entry) for entry in preset_data["grid"]]
     mandatory_two = preset_data.get("mandatory_two_compounds", True)
 
+    if calibration is not None:
+        # A qualifying grid replaces the preset grid (real pairs + order); bundled
+        # drivers without a qualifying slot are appended behind the field.
+        if calibration.starting_grid:
+            grid = _apply_calibration_grid(grid, calibration.starting_grid)
+        # Drivers missing per-driver offsets inherit their teammate's mean offset.
+        calibration = calibration.with_teammate_fallbacks((e.driver_id, e.team_id) for e in grid)
+
     return RaceConfig(
         circuit=circuit,
         grid=grid,
         laps=laps if laps is not None else circuit.total_laps,
         seed=seed,
         mandatory_two_compounds=mandatory_two,
+        calibration=calibration,
     )

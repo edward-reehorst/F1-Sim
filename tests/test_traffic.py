@@ -5,22 +5,23 @@ import pytest
 from f1_sim.engine import (
     RaceEngine,
     compute_overtake_probability,
-    compute_overtake_threshold,
     evaluate_overtake,
 )
 from f1_sim.loaders import build_race_config, load_circuit, load_compound, load_driver, load_team
 from f1_sim.models import GridEntry, RaceConfig
 
 
-def test_overtake_threshold_scaling():
-    """Circuits with higher overtaking difficulty must require higher pace delta to pass."""
-    t_monza = compute_overtake_threshold(circuit_overtaking_difficulty=0.25)
-    t_silverstone = compute_overtake_threshold(circuit_overtaking_difficulty=0.45)
-    t_monaco = compute_overtake_threshold(circuit_overtaking_difficulty=0.95)
+def test_circuit_overtake_thresholds_scale_with_difficulty():
+    """Circuits must carry frequency-matched overtake thresholds, hardest track highest."""
+    t_monza = load_circuit("monza").overtake_threshold_seconds
+    t_silverstone = load_circuit("silverstone").overtake_threshold_seconds
+    t_spa = load_circuit("spa").overtake_threshold_seconds
+    t_monaco = load_circuit("monaco").overtake_threshold_seconds
 
-    assert t_monza < t_silverstone < t_monaco
-    assert t_monza == pytest.approx(0.35 * (1.0 + 0.25))
-    assert t_monaco == pytest.approx(0.35 * (1.0 + 0.95))
+    # Monaco is by far the hardest to pass; the other three cluster lower.
+    assert t_monaco > max(t_monza, t_silverstone, t_spa)
+    assert t_monza == pytest.approx(0.7031)
+    assert t_monaco == pytest.approx(3.5)
 
 
 def test_overtake_probability_monotonicity():
@@ -45,9 +46,8 @@ def test_overtake_probability_monotonicity():
 def test_evaluate_overtake_success_and_failure():
     """evaluate_overtake must determine success based on RNG roll and return valid event."""
     lap = 5
-    pace_delta = 0.60
-    base_thresh = 0.35
-    circuit_diff = 0.25
+    pace_delta = 1.00
+    threshold = 0.7031
 
     # Low roll (0.10) should succeed
     success_pass, event_pass = evaluate_overtake(
@@ -56,8 +56,7 @@ def test_evaluate_overtake_success_and_failure():
         defender_id="verstappen",
         position=1,
         pace_delta=pace_delta,
-        circuit_difficulty=circuit_diff,
-        base_threshold=base_thresh,
+        threshold=threshold,
         rng_value=0.10,
     )
     assert success_pass is True
@@ -71,8 +70,7 @@ def test_evaluate_overtake_success_and_failure():
         defender_id="verstappen",
         position=1,
         pace_delta=pace_delta,
-        circuit_difficulty=circuit_diff,
-        base_threshold=base_thresh,
+        threshold=threshold,
         rng_value=0.99,
     )
     assert success_fail is False

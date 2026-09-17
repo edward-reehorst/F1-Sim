@@ -73,7 +73,7 @@ Where:
 To keep the engine fast, predictable, and maintainable, explicit dynamic in-race weather transitions (drying lines, rainfall intensity, intermediate/wet crossover thresholds) are **not required in the core engine**. Instead, wet racing is achieved through **dedicated configuration presets**:
 - **Circuit Overrides**:
   - `base_lap_time`: Scaled slower to match wet pace (e.g. $+12.0\text{s}$ to $+18.0\text{s}$ slower for full wet, $+6.0\text{s}$ to $+9.0\text{s}$ for damp/intermediate).
-  - `overtaking_difficulty`: Scaled higher to reflect reduced off-line grip and spray visibility issues.
+  - `overtake_threshold_seconds`: Scaled higher to reflect reduced off-line grip and spray visibility issues.
   - `pit_transit_loss` & `safety_car_pit_loss`: Adjusted for wet pit entry/exit delta speeds.
 - **Tire Compound Definitions**:
   - Custom wet compound definitions (e.g., `Intermediate` with green branding or `Wet` with blue branding) specifying wet-calibrated wear rates and cliff thresholds.
@@ -88,7 +88,7 @@ To keep the engine fast, predictable, and maintainable, explicit dynamic in-race
 ### 3.1 Pydantic Domain Schemas
 - **`Driver`**: `id`, `name`, `code` (e.g. `VER`), `number`, `pace_rating`, `tire_management`.
 - **`Team` / `Car`**: `id`, `name`, `engine_power`, `aero_efficiency`, `mechanical_grip`, `reliability`, `pit_crew_speed`, `pit_crew_consistency`.
-- **`Circuit`**: `id`, `name`, `country`, `total_laps`, `base_lap_time`, `overtaking_difficulty`, `tire_wear_factor`, `pit_transit_loss`, `safety_car_pit_loss`, `fuel_burn_per_lap`.
+- **`Circuit`**: `id`, `name`, `country`, `total_laps`, `base_lap_time`, `overtake_threshold_seconds`, `tire_wear_factor`, `pit_transit_loss`, `safety_car_pit_loss`, `fuel_burn_per_lap`.
 - **`TireCompound`**: `compound_name`, `color_code`, `base_delta`, `wear_rate`, `cliff_lap`.
 - **`RaceConfig`**: `circuit`, `grid` (starting order and starting tires), `laps`, `seed`, `mandatory_two_compounds`.
 - **`LapResult` & `RaceResult`**: Complete time-series history of every driver's lap time, cumulative time, position, tire age, compound, gap to leader, interval to car ahead, and pit stop log.
