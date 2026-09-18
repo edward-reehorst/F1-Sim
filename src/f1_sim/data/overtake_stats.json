@@ -37,6 +37,13 @@
       "q1_seconds": 0.2502500000000012,
       "median_seconds": 0.5912500000000023,
       "q3_seconds": 1.124624999999991
+    },
+    "baku": {
+      "n_races": 7,
+      "n_overtakes": 97,
+      "q1_seconds": 0.519,
+      "median_seconds": 0.8665,
+      "q3_seconds": 1.28
     }
   }
 }

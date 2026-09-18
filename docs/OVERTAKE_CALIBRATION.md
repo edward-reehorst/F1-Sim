@@ -106,6 +106,7 @@ Real targets from `overtake_stats.json` and the matched sim result:
 | Circuit | races | real passes | target / race | threshold (s) | sim / race (5 seeds) | converged |
 |---------|-------|-------------|---------------|---------------|----------------------|-----------|
 | monaco  | 7     | 15          | 2.14          | **3.5 (manual)** | ~0       | n/a      |
+| baku    | 7     | 97          | 13.86         | **0.7422**      | 13.40                | yes      |
 | monza   | 8     | 164         | 20.50         | 0.7031        | 20.00                | yes       |
 | silverstone | 9  | 116         | 12.89        | 0.8008        | 12.20                | yes       |
 | spa     | 8     | 145         | 18.12         | 0.7812        | 18.40                | yes       |

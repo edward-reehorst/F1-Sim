@@ -31,6 +31,7 @@ CIRCUIT_GP_NAMES: dict[str, tuple[str, ...]] = {
     "silverstone": ("British Grand Prix", "Silverstone", "British"),
     "spa": ("Belgian Grand Prix", "Spa-Francorchamps", "Belgian"),
     "monaco": ("Monaco Grand Prix", "Monaco",),
+    "baku": ("Azerbaijan Grand Prix", "Baku", "Azerbaijani"),
 }
 
 # Canonical event names a circuit's race must resolve to. FastF1 silently
@@ -42,6 +43,7 @@ CIRCUIT_EVENT_NAMES: dict[str, frozenset[str]] = {
     "silverstone": frozenset({"british grand prix"}),
     "spa": frozenset({"belgian grand prix"}),
     "monaco": frozenset({"monaco grand prix"}),
+    "baku": frozenset({"azerbaijan grand prix"}),
 }
 
 _NEEDED_COLUMNS = {"Driver", "LapNumber", "LapTime", "Position", "PitInTime", "PitOutTime", "TrackStatus"}

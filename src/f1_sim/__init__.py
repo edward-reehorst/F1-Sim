@@ -572,7 +572,7 @@ def _build_app() -> typer.Typer:
         incidents: bool = typer.Option(True, "--incidents/--no-incidents", help="Enable Safety Cars/DNFs in search races"),
         laps: int | None = typer.Option(None, "--laps", "-l", help="Race laps for search races (defaults to full distance)"),
         skip_circuits: str = typer.Option(
-            "monaco", "--skip-circuits", help="Comma-separated circuits excluded from the match (kept at their manually calibrated thresholds)"
+            "monaco", "--skip-circuits", help="Comma-separated circuits excluded from the match (kept at their manual thresholds, e.g. Monaco where the empirical sample is tiny)"
         ),
         out: str = typer.Option(None, "--out", help="Write matched thresholds JSON to this path"),
         apply: bool = typer.Option(
