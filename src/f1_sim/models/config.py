@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from f1_sim.models.calibration import CalibrationConfig
 from f1_sim.models.circuit import Circuit
+from f1_sim.models.snapshot import LiveRaceSnapshot
 
 
 class GridEntry(BaseModel):
