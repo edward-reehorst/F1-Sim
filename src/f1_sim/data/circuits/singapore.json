@@ -1,0 +1,12 @@
+{
+  "id": "singapore",
+  "name": "Marina Bay Street Circuit",
+  "country": "Singapore",
+  "total_laps": 62,
+  "base_lap_time": 94.0,
+  "tire_wear_factor": 1.1,
+  "pit_transit_loss": 21.5,
+  "safety_car_pit_loss": 12.0,
+  "fuel_burn_per_lap": 1.9,
+  "overtake_threshold_seconds": 0.8594
+}

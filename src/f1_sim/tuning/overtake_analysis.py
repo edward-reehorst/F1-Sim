@@ -32,6 +32,10 @@ CIRCUIT_GP_NAMES: dict[str, tuple[str, ...]] = {
     "spa": ("Belgian Grand Prix", "Spa-Francorchamps", "Belgian"),
     "monaco": ("Monaco Grand Prix", "Monaco",),
     "baku": ("Azerbaijan Grand Prix", "Baku", "Azerbaijani"),
+    "cota": ("United States Grand Prix", "Circuit of the Americas", "COTA", "Austin", "American"),
+    "singapore": ("Singapore Grand Prix", "Marina Bay", "Singapore"),
+    "interlagos": ("Brazilian Grand Prix", "Sao Paulo Grand Prix", "Interlagos", "Brazilian"),
+    "vegas": ("Las Vegas Grand Prix", "Las Vegas Strip Circuit", "Nevadan"),
 }
 
 # Canonical event names a circuit's race must resolve to. FastF1 silently
@@ -44,6 +48,10 @@ CIRCUIT_EVENT_NAMES: dict[str, frozenset[str]] = {
     "spa": frozenset({"belgian grand prix"}),
     "monaco": frozenset({"monaco grand prix"}),
     "baku": frozenset({"azerbaijan grand prix"}),
+    "cota": frozenset({"united states grand prix"}),
+    "singapore": frozenset({"singapore grand prix"}),
+    "interlagos": frozenset({"brazilian grand prix", "sao paulo grand prix"}),
+    "vegas": frozenset({"las vegas grand prix"}),
 }
 
 _NEEDED_COLUMNS = {"Driver", "LapNumber", "LapTime", "Position", "PitInTime", "PitOutTime", "TrackStatus"}
@@ -170,7 +178,7 @@ def detect_on_track_overtakes(
 
     samples: list[OvertakeSample] = []
     lap_numbers = sorted(order_by_lap)
-    for lap_prev, lap_cur in zip(lap_numbers, lap_numbers[1:]):
+    for lap_prev, lap_cur in zip(lap_numbers, lap_numbers[1:], strict=False):
         prev_order = order_by_lap[lap_prev]
         cur_order = order_by_lap[lap_cur]
         for pos in range(1, min(len(prev_order), len(cur_order))):

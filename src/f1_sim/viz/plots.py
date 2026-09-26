@@ -1,7 +1,9 @@
 """Post-race visualization tools using Matplotlib."""
 
 from pathlib import Path
+
 import matplotlib
+
 matplotlib.use("Agg")  # Non-interactive backend safe for CLI and headless runs
 import matplotlib.pyplot as plt
 

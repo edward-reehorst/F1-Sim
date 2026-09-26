@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from f1_sim.tuning.overtake_calibration import (
     load_stat_targets,
     match_overtake_threshold,

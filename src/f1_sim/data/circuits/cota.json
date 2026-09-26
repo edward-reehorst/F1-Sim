@@ -1,0 +1,12 @@
+{
+  "id": "cota",
+  "name": "Circuit of the Americas",
+  "country": "United States",
+  "total_laps": 56,
+  "base_lap_time": 92.0,
+  "tire_wear_factor": 1.25,
+  "pit_transit_loss": 21.0,
+  "safety_car_pit_loss": 11.5,
+  "fuel_burn_per_lap": 1.95,
+  "overtake_threshold_seconds": 0.719
+}

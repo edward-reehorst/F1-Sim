@@ -1,0 +1,12 @@
+{
+  "id": "vegas",
+  "name": "Las Vegas Strip Circuit",
+  "country": "United States",
+  "total_laps": 50,
+  "base_lap_time": 95.5,
+  "tire_wear_factor": 1.05,
+  "pit_transit_loss": 22.5,
+  "safety_car_pit_loss": 12.3,
+  "fuel_burn_per_lap": 1.92,
+  "overtake_threshold_seconds": 0.6445
+}

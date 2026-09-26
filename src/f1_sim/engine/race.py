@@ -65,12 +65,64 @@ class RaceEngine:
             # Initial grid stagger: each position starts ~0.25s behind preceding car
             grid_delay = (entry.starting_position - 1) * 0.25
 
+            # Optional live resume: seed the car from its real in-race state instead of
+            # the artificial grid stagger. Gaps, compounds, fuel, and DNF flags come
+            # straight from the snapshot; only the remaining laps are then simulated.
+            snapshot_by_driver = None
+            if self.config.live_snapshot is not None:
+                # Translate 3-letter timing codes (VER) onto the bundled grid slugs the
+                # same way `_derive_grid_from_snapshot` does, so the snapshot lookups
+                # below (addressed by `entry.driver_id`) actually resolve.
+                code_to_driver_id = {d.code: driver_id for driver_id, d in self.drivers.items()}
+                snapshot_by_driver = {
+                    code_to_driver_id.get(live.driver_code, live.driver_code): live
+                    for live in self.config.live_snapshot.drivers
+                }
+
             car_state = CarState(
                 driver=driver,
                 team=team,
                 current_tire=tire,
-                fuel_remaining_kg=config.initial_fuel_kg or 100.0,
-                cumulative_time=grid_delay,
+                tire_age=(
+                    snapshot_by_driver[entry.driver_id].tire_age
+                    if snapshot_by_driver and entry.driver_id in snapshot_by_driver
+                    else 0
+                ),
+                compounds_used=(
+                    list(snapshot_by_driver[entry.driver_id].compounds_used_so_far)
+                    if snapshot_by_driver
+                    and entry.driver_id in snapshot_by_driver
+                    and snapshot_by_driver[entry.driver_id].compounds_used_so_far
+                    else []
+                ),
+                fuel_remaining_kg=(
+                    snapshot_by_driver[entry.driver_id].fuel_remaining_kg
+                    if snapshot_by_driver and entry.driver_id in snapshot_by_driver
+                    and snapshot_by_driver[entry.driver_id].fuel_remaining_kg is not None
+                    else config.initial_fuel_kg or 100.0
+                ),
+                cumulative_time=(
+                    snapshot_by_driver[entry.driver_id].gap_to_leader_seconds
+                    if snapshot_by_driver and entry.driver_id in snapshot_by_driver
+                    else grid_delay
+                ),
+                laps_completed=(
+                    snapshot_by_driver[entry.driver_id].laps_completed
+                    if snapshot_by_driver and entry.driver_id in snapshot_by_driver
+                    else 0
+                ),
+                is_dnf=(
+                    not snapshot_by_driver[entry.driver_id].running
+                    if snapshot_by_driver and entry.driver_id in snapshot_by_driver
+                    else False
+                ),
+                dnf_reason=(
+                    snapshot_by_driver[entry.driver_id].dnf_reason
+                    if snapshot_by_driver
+                    and entry.driver_id in snapshot_by_driver
+                    and not snapshot_by_driver[entry.driver_id].running
+                    else None
+                ),
             )
             self.cars.append(car_state)
 
@@ -363,9 +415,11 @@ class RaceEngine:
         # Find fastest lap across entire race
         fastest_record: DriverLapRecord | None = None
         for rec in self.lap_records:
-            if rec.race_flag == RaceFlag.GREEN.value:  # Only valid under green
-                if fastest_record is None or rec.lap_time < fastest_record.lap_time:
-                    fastest_record = rec
+            # Only valid under green
+            if rec.race_flag == RaceFlag.GREEN.value and (
+                fastest_record is None or rec.lap_time < fastest_record.lap_time
+            ):
+                fastest_record = rec
 
         fastest_driver_id = fastest_record.driver_id if fastest_record else None
         fastest_time = fastest_record.lap_time if fastest_record else None

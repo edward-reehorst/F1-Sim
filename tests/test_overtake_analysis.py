@@ -45,7 +45,7 @@ def _two_car_pass(
     """
     laps = range(1, n_laps + 1)
     positions = {
-        L: ({"HAM": 1, "VER": 2} if L < pass_lap else {"VER": 1, "HAM": 2}) for L in laps
+        L: ({"HAM": 1, "VER": 2} if pass_lap > L else {"VER": 1, "HAM": 2}) for L in laps
     }
     times = {}
     for L in laps:

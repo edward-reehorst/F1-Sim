@@ -5,7 +5,7 @@ from __future__ import annotations
 import random
 
 from f1_sim.engine.physics import compute_clean_air_lap_time
-from f1_sim.loaders import load_all_drivers, load_compound, load_circuit, load_team, load_preset
+from f1_sim.loaders import load_all_drivers, load_circuit, load_compound, load_preset, load_team
 from f1_sim.models.calibration import CalibrationConfig
 from f1_sim.models.telemetry import LapObservation, TelemetryDataset
 
@@ -62,9 +62,8 @@ def generate_synthetic_dataset(
         for compound_name, stint_laps, session in zip(compounds, stints, sessions, strict=True):
             tire = load_compound(compound_name)
             tire_age = 0
-            for _ in range(stint_laps):
+            for tire_age in range(1, stint_laps + 1):
                 lap_num += 1
-                tire_age += 1
                 fuel = max(0.0, fuel - circuit.fuel_burn_per_lap)
 
                 lap_time = compute_clean_air_lap_time(
@@ -92,7 +91,7 @@ def generate_synthetic_dataset(
                         fuel_remaining_kg=fuel if include_fuel else None,
                         flag="GREEN",
                         position=1,
-                        stint=1 + sum(1 for l in stints if lap_num > l),
+                        stint=1 + sum(1 for stint_end in stints if lap_num > stint_end),
                         tire_age_at_lap_start=tire_age,
                     )
                 )

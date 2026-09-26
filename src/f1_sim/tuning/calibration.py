@@ -205,7 +205,7 @@ class _Fit:
         columns["base_adjust"] = np.ones(n, dtype=float)
         col_names: dict[str, str] = {"base_adjust": "circuit base adjust"}
 
-        for j, d in enumerate(driver_cols):
+        for _j, d in enumerate(driver_cols):
             name = f"driver:{d}"
             columns[name] = np.array([self.obs[i].driver_id == d for i in idx], dtype=float)
 
@@ -389,10 +389,7 @@ def calibrate_from_dataset(
     in_sample_rmse = float(
         np.sqrt(np.mean(residuals[fit_idx] ** 2)) if fit_idx.size else float("nan")
     )
-    if hold_idx.size:
-        holdout_rmse = float(np.sqrt(np.mean(residuals[hold_idx] ** 2)))
-    else:
-        holdout_rmse = None
+    holdout_rmse = float(np.sqrt(np.mean(residuals[hold_idx] ** 2))) if hold_idx.size else None
 
     return CalibrationReport(
         circuit_id=circuit_id,

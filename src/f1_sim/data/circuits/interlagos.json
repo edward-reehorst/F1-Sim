@@ -1,0 +1,12 @@
+{
+  "id": "interlagos",
+  "name": "Autodromo Jose Carlos Pace (Interlagos)",
+  "country": "Brazil",
+  "total_laps": 71,
+  "base_lap_time": 70.0,
+  "tire_wear_factor": 1.3,
+  "pit_transit_loss": 19.0,
+  "safety_car_pit_loss": 10.8,
+  "fuel_burn_per_lap": 1.98,
+  "overtake_threshold_seconds": 0.7129
+}

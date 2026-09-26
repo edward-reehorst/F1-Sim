@@ -1,8 +1,8 @@
 """Rich terminal live spectator dashboard with real-time leaderboard and commentary."""
 
 import time
+
 from rich.console import Group
-from rich.layout import Layout
 from rich.live import Live
 from rich.panel import Panel
 from rich.table import Table
@@ -141,16 +141,19 @@ def run_live_race(
     fastest_record: DriverLapRecord | None = None
 
     with Live(auto_refresh=False, screen=True) as live:
-        for lap_idx in range(engine.total_laps):
+        for _lap_idx in range(engine.total_laps):
             lap_records = engine.step_lap()
 
             # Track fastest lap
             for r in lap_records:
-                if r.race_flag == RaceFlag.GREEN.value:
-                    if fastest_record is None or r.lap_time < fastest_record.lap_time:
-                        fastest_record = r
-                        driver_code = drivers_dict[r.driver_id].code
-                        recent_events.append(f"Lap {r.lap}: FASTEST LAP set by {driver_code} ({r.lap_time:.3f}s)")
+                if r.race_flag == RaceFlag.GREEN.value and (
+                    fastest_record is None or r.lap_time < fastest_record.lap_time
+                ):
+                    fastest_record = r
+                    driver_code = drivers_dict[r.driver_id].code
+                    recent_events.append(
+                        f"Lap {r.lap}: FASTEST LAP set by {driver_code} ({r.lap_time:.3f}s)"
+                    )
 
             # Check new overtakes from this lap
             for ov in engine.overtake_events:

@@ -7,7 +7,7 @@ from f1_sim.engine import (
     compute_overtake_probability,
     evaluate_overtake,
 )
-from f1_sim.loaders import build_race_config, load_circuit, load_compound, load_driver, load_team
+from f1_sim.loaders import build_race_config, load_circuit
 from f1_sim.models import GridEntry, RaceConfig
 
 

@@ -25,6 +25,12 @@ class RaceConfig(BaseModel):
         default=None,
         description="Tuning/calibration overlay layered onto bundled defaults without mutating them.",
     )
+    live_snapshot: LiveRaceSnapshot | None = Field(
+        default=None,
+        description="Optional real in-race state (running order, compounds, gaps, DNFs) captured "
+        "from a live Grand Prix. When set, the race engine resumes from this snapshot and "
+        "simulates only the remaining laps.",
+    )
     laps: int | None = Field(
         default=None,
         ge=1,

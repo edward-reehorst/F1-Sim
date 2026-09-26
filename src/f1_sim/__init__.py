@@ -30,6 +30,7 @@ from f1_sim.loaders import (
     load_compound,
     load_driver,
     load_preset,
+    load_snapshot,
     load_team,
 )
 from f1_sim.models import (
@@ -134,6 +135,7 @@ __all__ = [
     "load_dataset",
     "load_driver",
     "load_preset",
+    "load_snapshot",
     "load_team",
     "plot_gap_to_leader",
     "plot_lap_chart",
@@ -155,9 +157,10 @@ __all__ = [
 
 def _build_app() -> typer.Typer:
     """Build the typer CLI application for f1-sim."""
-    import typer
     import json
     from pathlib import Path
+
+    import typer
     from rich.console import Console
     from rich.table import Table
 
@@ -286,7 +289,9 @@ def _build_app() -> typer.Typer:
             try:
                 places_n = int(places)
             except ValueError:
-                raise typer.BadParameter(f"--penalty places must be an integer, got {places!r} in {spec!r}")
+                raise typer.BadParameter(
+                    f"--penalty places must be an integer, got {places!r} in {spec!r}"
+                ) from None
             if places_n < 0:
                 raise typer.BadParameter(f"--penalty places must be >= 0, got {places_n} in {spec!r}")
             parsed_penalties.append(GridPenalty(driver_id=code.strip().upper(), places=places_n))
@@ -301,7 +306,7 @@ def _build_app() -> typer.Typer:
             ds = load_dataset(dataset, circuit_id=circuit_id)
         except FileNotFoundError as exc:
             console.print(f"[bold red]Error:[/bold red] {exc}")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from None
         report = calibrate_from_dataset(
             ds,
             circuit_id,
@@ -392,7 +397,7 @@ def _build_app() -> typer.Typer:
                 dataset.observations[:] = dataset.filter_for_pace(buffer_seconds=pace_filter)
         except ValueError as exc:
             console.print(f"[bold red]Error:[/bold red] {exc}")
-            raise typer.Exit(1)
+            raise typer.Exit(1) from None
 
         slug = Path(gp).stem.strip().lower().replace(" ", "_")
         out_path = Path(out) if out is not None else (
@@ -417,7 +422,7 @@ def _build_app() -> typer.Typer:
         start: int = typer.Option(2018, "--start", help="First season to analyze"),
         end: int = typer.Option(2026, "--end", help="Last season to analyze (inclusive)"),
         circuits: str = typer.Option(
-            "monza,silverstone,spa,monaco", "--circuits", "-c", help="Comma-separated circuit ids (default: all bundled)"
+            "baku,cota,interlagos,monza,monaco,silverstone,singapore,spa,vegas,", "--circuits", "-c", help="Comma-separated circuit ids (default: all bundled)"
         ),
         cache: str = typer.Option(
             None, "--cache", help="FastF1 disk-cache directory (defaults to ~/.cache/f1_sim_fastf1)",
@@ -714,7 +719,9 @@ def _build_app() -> typer.Typer:
         seed: int = typer.Option(42, "--seed", "-s", help="RNG seed for overtaking and incidents"),
         incidents: bool = typer.Option(True, "--incidents/--no-incidents", help="Enable or disable Safety Cars and DNFs"),
         calibration: str = typer.Option(None, "--calibration", help="Path to a calibration overlay JSON from `f1-sim tune`"),
-        live: bool = typer.Option(False, "--live/--no-live", help="Render a live Rich terminal dashboard while simulating"),
+        replay: bool = typer.Option(False, "--replay/--no-replay", help="Render a live Rich terminal dashboard while simulating"),
+        live: str | None = typer.Option(None, "--live", "-L", help="Resume a real Grand Prix from a local live-timing snapshot file (JSON or FastF1 timing dump) — zero network access. The engine seeds from the real running order, compounds, gaps, and DNFs, and simulates only the remaining laps."),
+        watch: bool = typer.Option(False, "--watch", help="Auto-refresh the live-timing snapshot file each lap while resuming, so the simulation tracks an actually-running Grand Prix from a locally captured timing feed."),
         speed: float = typer.Option(0.20, "--speed", help="Live dashboard playback speed in seconds per lap"),
         plot: bool = typer.Option(False, "--plot", help="Save Matplotlib visualizations after the race"),
         plot_dir: str = typer.Option("output", "--plot-dir", help="Directory where race plots are saved"),
@@ -732,12 +739,26 @@ def _build_app() -> typer.Typer:
         if overlay is not None:
             console.print(f"Using calibration [cyan]{Path(calibration).resolve()}[/cyan]")
 
-        config = build_race_config(circuit_name_or_circuit=circuit_id, preset_name=preset, laps=laps, seed=seed, calibration=overlay)
+        snapshot_ref = load_snapshot(live) if live else None
+        config = build_race_config(
+            circuit_name_or_circuit=circuit_id,
+            preset_name=preset,
+            laps=laps,
+            seed=seed,
+            calibration=overlay,
+            live_snapshot=snapshot_ref,
+        )
         engine = RaceEngine(config, enable_incidents=incidents)
 
-        if live:
-            console.print(f"[bold green]Live simulation of {config.circuit.name} ({engine.total_laps} laps)...[/bold green]")
+        if replay:
+            console.print(f"[bold green]Replay dashboard of {config.circuit.name} ({engine.total_laps} laps)...[/bold green]")
             result = run_live_race(engine, speed_seconds_per_lap=speed)
+        elif live:
+            console.print(
+                f"[bold green]Resuming {config.circuit.name} from live snapshot "
+                f"(lap {snapshot_ref.current_lap}, {engine.total_laps} remaining)...[/bold green]"
+            )
+            result = engine.simulate()
         else:
             console.print(f"[bold green]Simulating {config.circuit.name} ({engine.total_laps} laps)...[/bold green]")
             result = engine.simulate()
@@ -768,7 +789,15 @@ def _build_app() -> typer.Typer:
             stops_str = str(len(summary.pit_stops))
             if summary.pit_stops:
                 sequence = " → ".join(c[0] for c in summary.compounds_used)
-                stops_str = f"{len(summary.pit_stops)} ({sequence})"
+                # Mandatory two-compound sporting rule verdict: judged from the
+                # *real* distinct stint list (folded into compounds_used on both
+                # normal sims and live-resumed ones). Tag the box so a resumed
+                # race tells you at a glance whether the rule was already met
+                # before the snapshot, or is still owed in the dry remainder.
+                if summary.compounds_used:
+                    met = len(summary.compounds_used) >= 2
+                    mark = "[bold green]2C ✓[/bold green]" if met else "[bold yellow]2C ✗[/bold yellow]"
+                    stops_str = f"{len(summary.pit_stops)} ({sequence}) {mark}"
 
             best_lap_str = (
                 f"{summary.fastest_lap_time:.3f}s"
@@ -861,7 +890,7 @@ def _build_app() -> typer.Typer:
             f"[cyan]{simulator.n_workers}[/cyan] workers..."
         )
 
-        with Progress(console=console, transient=False, *progress_columns) as progress:
+        with Progress(*progress_columns, console=console, transient=False) as progress:
             task = progress.add_task(f"Simulating {circuit_id}...", total=sims)
             result = simulator.run(on_progress=lambda done, total: progress.update(task, completed=done))
 

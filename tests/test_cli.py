@@ -9,9 +9,8 @@ from pathlib import Path
 
 from typer.testing import CliRunner
 
-from f1_sim import generate_synthetic_dataset
+from f1_sim import _build_app, generate_synthetic_dataset
 from f1_sim.models import CalibrationConfig
-from f1_sim import _build_app
 
 runner = CliRunner()
 app = _build_app()

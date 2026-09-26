@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
-import json
 import csv
+import json
 
-from f1_sim.tuning import generate_synthetic_dataset, load_dataset, write_observations_csv, write_observations_json
+from f1_sim.tuning import (
+    generate_synthetic_dataset,
+    load_dataset,
+    write_observations_csv,
+    write_observations_json,
+)
 
 
 def _without_source(dataset) -> list[dict]:

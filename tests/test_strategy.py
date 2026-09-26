@@ -3,7 +3,7 @@
 import pytest
 
 from f1_sim.engine import CarState
-from f1_sim.loaders import load_all_compounds, load_compound, load_driver, load_team
+from f1_sim.loaders import load_all_compounds, load_driver, load_team
 from f1_sim.models.flags import RaceFlag
 from f1_sim.strategy import StandardStrategy
 

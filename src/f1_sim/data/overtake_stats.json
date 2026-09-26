@@ -44,6 +44,22 @@
       "q1_seconds": 0.519,
       "median_seconds": 0.8665,
       "q3_seconds": 1.28
+    },
+    "cota": {
+      "n_races": 7,
+      "n_overtakes": 140
+    },
+    "singapore": {
+      "n_races": 6,
+      "n_overtakes": 58
+    },
+    "interlagos": {
+      "n_races": 2,
+      "n_overtakes": 46
+    },
+    "vegas": {
+      "n_races": 3,
+      "n_overtakes": 78
     }
   }
 }

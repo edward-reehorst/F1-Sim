@@ -1,6 +1,7 @@
 """Traffic dynamics, dirty air effects, and pace-offset overtaking logic."""
 
 import math
+
 from pydantic import BaseModel, Field
 
 

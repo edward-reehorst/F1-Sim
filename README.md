@@ -57,6 +57,150 @@ for summary in result.driver_summaries[:10]:
     print(f"P{summary.finish_position}: {summary.driver_code} (+{summary.gap_to_winner:.3f}s, {stops} stops, {summary.points} pts)")
 ```
 
+## Live Race Resume (Zero Network at Resume Time)
+
+Resume a **real, in-progress Grand Prix** from a local live-timing snapshot.
+The engine seeds every car from the capture's real running order, gaps, tire
+compounds, and DNF flags, then simulates **only the remaining laps**.
+
+**Capture touches the network; resume never does.** Once you have a snapshot
+JSON, resuming is a local file read — no FastF1 calls, no sockets.
+
+### Capturing a live race
+
+F1TV's live timing feed is the only source for an in-progress session (FastF1's
+static archive returns `403` until a session ends). It requires an F1TV
+subscription — see **[docs/f1tv_activation.md](docs/f1tv_activation.md)** for the
+one-time setup.
+
+```bash
+# Start this BEFORE the session begins:
+uv run python scripts/network_capture.py record \
+    --year 2026 --gp italian \
+    --circuit monza --out out/snapshots --poll 5
+```
+
+This records the live timing feed to `out/snapshots/monza_live.txt` and writes
+one lap-addressable snapshot per newly-seen lap (`monza_lap40.json`, …). Only the
+recorder opens a socket; every snapshot after that is read from disk.
+
+### Capturing a race that has already finished (no subscription needed)
+
+```bash
+uv run python scripts/network_capture.py record \
+    --source post-session --year 2026 --gp italian --session R \
+    --circuit monza --out out/snapshots
+```
+
+Walks the FastF1 static archive one lap at a time and writes the same files, so
+the whole capture path can be exercised offline.
+
+### Capturing from timing files already on disk
+
+If the timing feed is already mirrored locally (`*.pkl` FastF1 timing dumps, or
+plain JSON in the snapshot shape), `capture_snapshot.py` re-captures the field
+from that directory without opening a socket:
+
+```bash
+uv run python scripts/capture_snapshot.py \
+    --watch-dir path/to/local-live-timing \
+    --out out/snapshots --circuit monza --poll 5
+
+# Capture exactly one frame and exit (for CI / scheduled jobs):
+uv run python scripts/capture_snapshot.py \
+    --watch-dir path/to/local-live-timing \
+    --out out/snapshots --circuit monza --once
+```
+
+It re-validates every frame through `f1_sim.loaders.load_snapshot` before writing.
+
+### Snapshot schema
+
+A captured snapshot is a plain JSON document with this top-level shape
+(the per-driver entries use real 3-letter FIA codes — `VER`, `NOR`, …):
+
+```json
+{
+  "circuit_id": "monza",
+  "current_lap": 40,
+  "total_laps": null,
+  "race_flag": "GREEN",
+  "origin_note": "captured from real timing data; resume is simulated only over the remaining laps",
+  "drivers": [
+    {
+      "driver_code": "VER",
+      "position": 1,
+      "gap_to_leader_seconds": 0.0,
+      "interval_to_ahead_seconds": 0.4,
+      "laps_completed": 40,
+      "current_tire_compound": "medium",
+      "tire_age": 9,
+      "fuel_remaining_kg": null,
+      "compounds_used_so_far": ["soft", "hard"],
+      "running": true,
+      "dnf_reason": null
+    }
+  ]
+}
+```
+
+`running: false` marks a retirement; `dnf_reason` carries *why*. The engine
+restores these cars as DNF-flagged rather than dropping them, so the finishing
+stats keep them visible. `fuel_remaining_kg` is `null` for live captures (the feed
+carries no usable figure) and the engine falls back to its bundled default;
+`total_laps` is `null` when unknown, and the circuit's race distance is used.
+
+### Resuming a real race — CLI
+
+```bash
+# Resume monza from a local snapshot, simulating only the remaining 13 laps:
+f1-sim race --circuit monza --live out/snapshots/monza_lap40.json
+
+# Same, short flag:
+f1-sim race --circuit monza -L out/snapshots/monza_lap40.json
+
+# Replay a Rich terminal dashboard while resuming, plus auto-refresh the
+# snapshot file each lap so the sim tracks an actually-running Grand Prix:
+f1-sim race --circuit monza --live out/snapshots/monza_lap40.json \
+    --replay --watch
+
+# Show all flags:
+f1-sim race --help
+```
+
+When a snapshot is provided the engine:
+- rebuilds the grid from the snapshot's **real running order**,
+- restores each car's compounds, gaps (→ `cumulative_time`), tire age, fuel,
+  and DNF flags,
+- threads the snapshot through `RaceConfig.live_snapshot` into `RaceEngine`,
+- simulates `total_laps − current_lap` remaining laps only.
+
+### Python API
+
+```python
+from f1_sim.loaders import load_snapshot, build_race_config
+from f1_sim.engine import RaceEngine
+
+snapshot = load_snapshot("out/snapshots/monza_lap40.json")
+
+config = build_race_config(
+    circuit_name_or_circuit="monza",
+    preset_name="2024_default",
+    laps=53,
+    seed=42,
+    live_snapshot=snapshot,
+)
+engine = RaceEngine(config, enable_incidents=True)
+
+print(engine.total_laps - engine.current_lap)  # 13 remaining
+result = engine.simulate()                     # only 13 laps are simulated
+print(result.remaining_laps)                   # 13
+```
+
+The loader seeds from a **local file only** — it performs zero additional
+FastF1 API pulls, so the whole feature works inside a firewall'd or offline
+sandbox.
+
 ## Running Tests
 ```bash
 uv run pytest

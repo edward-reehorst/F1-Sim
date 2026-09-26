@@ -1,7 +1,8 @@
 """Race control engine: flags, incident generation, Safety Car field compression, and DNFs."""
 
 import random
-from pydantic import BaseModel, Field
+
+from pydantic import BaseModel
 
 from f1_sim.engine.car_state import CarState
 from f1_sim.models.circuit import Circuit

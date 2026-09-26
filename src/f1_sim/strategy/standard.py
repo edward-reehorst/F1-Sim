@@ -84,22 +84,29 @@ class StandardStrategy(BaseStrategy):
             return True, target
 
         # 2. Opportunistic "Cheap Pit Stop" under Safety Car or VSC
-        if race_flag in (RaceFlag.SAFETY_CAR, RaceFlag.VSC):
-            # If tires have run at least 8 laps and there are enough remaining laps to benefit
-            if tire_age >= 8 and remaining_laps >= 6:
-                target = self.select_target_compound(
-                    car, remaining_laps, available_compounds, mandatory_two_compounds
-                )
-                return True, target
+        # If tires have run at least 8 laps and there are enough remaining laps to benefit
+        if (
+            race_flag in (RaceFlag.SAFETY_CAR, RaceFlag.VSC)
+            and tire_age >= 8
+            and remaining_laps >= 6
+        ):
+            target = self.select_target_compound(
+                car, remaining_laps, available_compounds, mandatory_two_compounds
+            )
+            return True, target
 
         # 3. Mandatory compound compliance urgency trigger
-        if mandatory_two_compounds and len(car.compounds_used) < 2:
-            # If approaching the end of the race without having used a 2nd compound
-            if remaining_laps <= 8 and tire_age >= 10:
-                target = self.select_target_compound(
-                    car, remaining_laps, available_compounds, mandatory_two_compounds
-                )
-                return True, target
+        # If approaching the end of the race without having used a 2nd compound
+        if (
+            mandatory_two_compounds
+            and len(car.compounds_used) < 2
+            and remaining_laps <= 8
+            and tire_age >= 10
+        ):
+            target = self.select_target_compound(
+                car, remaining_laps, available_compounds, mandatory_two_compounds
+            )
+            return True, target
 
         # 4. Planned pit window based on compound lifecycle
         planned_window = self.target_stint_length or (current_tire.cliff_lap - 4)

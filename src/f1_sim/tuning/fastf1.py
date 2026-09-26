@@ -4,8 +4,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import pandas as pd
-
 from f1_sim.models.calibration import GridPenalty
 from f1_sim.models.telemetry import LapObservation, TelemetryDataset
 from f1_sim.tuning.dataset import _Lookups
@@ -180,6 +178,33 @@ def apply_grid_penalties(
     return dict(sorted(grid.items(), key=lambda kv: (kv[1], kv[0])))
 
 
+def _load_session(session: Any, *, year: int, gp: str, identifier: str, laps: bool = True) -> Any:
+    """Load a FastF1 session for lap-level use and surface swallowed load failures.
+
+    ``Session.load`` wraps its lap fetch in ``@soft_exceptions``, so an
+    unavailable timing feed is only logged as ``Failed to load timing data!`` and
+    leaves ``session.laps`` unset, which later surfaces as a misleading
+    ``DataNotLoadedError``. Telemetry, weather and messages are disabled because
+    the exported observations are lap-level only (and each adds a large
+    download). With ``laps=False`` only session results are loaded.
+    """
+    label = f"{year} {gp} {identifier}"
+    if not session.f1_api_support:
+        raise ValueError(
+            f"{label}: the official timing API does not support this session, "
+            "so no lap data can be fetched."
+        )
+    session.load(laps=laps, telemetry=False, weather=False, messages=False)
+    if laps and getattr(session, "_laps", None) is None:
+        raise ValueError(
+            f"{label}: FastF1 loaded no lap data (it logged \"Failed to load timing "
+            "data!\" and hid the underlying error). The session most likely has not "
+            "finished yet, or its timing feed is not published; retry once the "
+            "session is over."
+        )
+    return session
+
+
 def _laps_to_dataset(
     laps: Any,
     *,
@@ -287,15 +312,17 @@ def fetch_session(
     import fastf1
 
     canonical_id, session_kind = _session_kind(session_identifier)
-    session = fastf1.get_session(year, gp, canonical_id)
-    session.load()
+    session = _load_session(
+        fastf1.get_session(year, gp, canonical_id), year=year, gp=gp, identifier=canonical_id
+    )
     green_laps = session.laps.pick_track_status("1")
     if session_kind == "qualifying":
         # Qualifying laps have no position; the official starting grid (penalties
         # applied) lives in the race session's GridPosition. Fall back to the
         # qualifying classification only when the race data is not populated yet.
-        race_session = fastf1.get_session(year, gp, "R")
-        race_session.load()
+        race_session = _load_session(
+            fastf1.get_session(year, gp, "R"), year=year, gp=gp, identifier="R", laps=False
+        )
         grid_positions = grid_positions_by_code(race_session.results)
         if not grid_positions:
             grid_positions = grid_positions_by_code(session.results, grid_position=False)

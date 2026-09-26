@@ -23,4 +23,42 @@ build-backend = "uv_build"
 [dependency-groups]
 dev = [
     "pytest>=9.1.1",
+    "ruff>=0.16.9",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+
+[tool.ruff.lint]
+select = [
+    "E",    # pycodestyle errors
+    "F",    # pyflakes: unused imports, undefined names
+    "I",    # import sorting
+    "UP",   # pyupgrade
+    "B",    # flake8-bugbear
+    "SIM",  # flake8-simplify
+]
+ignore = [
+    "E501",  # line length is handled by the formatter, not the linter
+    # Typer's declared API is built from call-in-default and a lazily imported
+    # annotation. Both are idiomatic there, and moving the import to module scope
+    # would slow down `import f1_sim` for every non-CLI user.
+    "B008",
+    "F821",
+    # RaceFlag subclasses (str, Enum). StrEnum would change str() and format()
+    # output, which is observable in CSV/JSON output, so it needs its own change
+    # with test coverage rather than a lint autofix.
+    "UP042",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]  # pytest.raises(Exception) is too broad to flag by default
+# Pre-existing dead locals. These read as dropped work rather than intentional
+# discards -- `circuit_wear` in the lap-time loop and `wear` in the calibration
+# model are both computed and then never used -- so they are left visible for
+# review instead of deleted by a linter.
+"src/f1_sim/engine/race.py" = ["F841"]
+"src/f1_sim/tuning/calibration.py" = ["F841"]
+"tests/test_tuning.py" = ["F841"]
+"tests/test_traffic.py" = ["F841"]

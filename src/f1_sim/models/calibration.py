@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import json
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -96,7 +95,7 @@ class CalibrationConfig(BaseModel):
         """True when the overlay applies no corrections anywhere."""
         return self.strip_defaults().model_dump() == {}
 
-    def strip_defaults(self) -> "CalibrationConfig":
+    def strip_defaults(self) -> CalibrationConfig:
         """Return a copy containing only entries that differ from default values.
 
         ``driver_pace_offsets`` is never pruned: an explicit 0.0s entry is a
@@ -121,7 +120,7 @@ class CalibrationConfig(BaseModel):
         """Additive pace offset in seconds for a driver (default 0.0)."""
         return self.driver_pace_offsets.get(driver_id, 0.0)
 
-    def with_teammate_fallbacks(self, roster: Iterable[tuple[str, str]]) -> "CalibrationConfig":
+    def with_teammate_fallbacks(self, roster: Iterable[tuple[str, str]]) -> CalibrationConfig:
         """Return a copy whose missing driver offsets inherit their teammates' mean.
 
         ``roster`` is an iterable of ``(driver_id, team_id)`` pairs describing the
@@ -182,6 +181,6 @@ class CalibrationConfig(BaseModel):
         path.write_text(self.strip_defaults().model_dump_json(indent=2), encoding="utf-8")
 
     @staticmethod
-    def read_json(path: str | Path) -> "CalibrationConfig":
+    def read_json(path: str | Path) -> CalibrationConfig:
         """Load an overlay from a JSON file."""
         return CalibrationConfig.model_validate_json(Path(path).read_text(encoding="utf-8"))

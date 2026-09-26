@@ -15,7 +15,6 @@ from f1_sim.loaders import (
 from f1_sim.models import CalibrationConfig, GridPenalty, GridSlot, LapObservation, TelemetryDataset
 from f1_sim.tuning import calibrate_from_dataset, generate_synthetic_dataset, load_dataset
 
-
 # ---------------------------------------------------------------- fixtures
 
 @pytest.fixture

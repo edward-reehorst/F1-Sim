@@ -1,12 +1,13 @@
 """Unit tests for Milestone 4: Race Control, Safety Cars, DNFs, and Regulations."""
 
 import random
+
 import pytest
 
 from f1_sim.engine.car_state import CarState
 from f1_sim.engine.race import RaceEngine
 from f1_sim.engine.race_control import RaceControlManager
-from f1_sim.loaders import build_race_config, load_circuit, load_compound, load_driver, load_team
+from f1_sim.loaders import load_circuit, load_compound, load_driver, load_team
 from f1_sim.models import GridEntry, RaceConfig
 from f1_sim.models.flags import RaceFlag
 

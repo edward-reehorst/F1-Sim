@@ -33,7 +33,7 @@ class LapObservation(BaseModel):
     source: dict[str, Any] | None = Field(default=None, description="Raw source record for provenance")
 
     @model_validator(mode="after")
-    def normalize_fields(self) -> "LapObservation":
+    def normalize_fields(self) -> LapObservation:
         """Normalize session and flag strings to canonical forms."""
         self.flag = self.flag.strip().upper()
         if self.session is not None:

@@ -112,15 +112,16 @@ def match_overtake_threshold(
             converged=True,
         )
 
-    evaluate = lambda threshold: overtake_count_for_threshold(
-        circuit_id,
-        threshold,
-        preset=preset,
-        seeds=seeds,
-        incidents=incidents,
-        laps=laps,
-        max_clean_delta=max_clean_delta,
-    )
+    def evaluate(threshold):
+        return overtake_count_for_threshold(
+            circuit_id,
+            threshold,
+            preset=preset,
+            seeds=seeds,
+            incidents=incidents,
+            laps=laps,
+            max_clean_delta=max_clean_delta,
+        )
 
     evaluations = 0
     f_lo = evaluate(lo)

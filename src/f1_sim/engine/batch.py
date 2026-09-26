@@ -3,8 +3,8 @@
 import os
 import random
 import time as time_module
+from collections.abc import Callable
 from statistics import mean
-from typing import Callable
 
 from pydantic import BaseModel, Field
 

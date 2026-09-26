@@ -21,6 +21,18 @@ class LiveDriverState(BaseModel):
     laps_completed: int = Field(default=0, ge=0, description="Laps completed by this driver in the live race")
     current_tire_compound: str = Field(default="Medium", description="Compound fitted at snapshot time")
     tire_age: int = Field(default=0, ge=0, description="Completed laps on the current tire set")
+    compounds_used_so_far: list[str] | None = Field(
+        default=None,
+        description=(
+            "Distinct dry-slick compounds this driver has already run before the "
+            "snapshot (ordered by first use). When set, the engine primes each "
+            "car's ``compounds_used`` with this history so the two-compound "
+            "sporting rule can be judged from the *real* in-race stint history "
+            "even on a live resume. None (the default) keeps the conservative "
+            "assumption that only the snapshot's current compound is known. "
+            "``tire_age`` is always the current stint's age, independent of this."
+        ),
+    )
     fuel_remaining_kg: float | None = Field(default=None, description="Onboard fuel mass in kg (None = accept simulation default)")
     running: bool = Field(default=True, description="Whether the car is still active (False = DNF)")
     dnf_reason: str | None = Field(default=None, description="Reason for retirement if not running")
