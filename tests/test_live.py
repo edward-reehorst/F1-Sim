@@ -8,6 +8,8 @@ those shapes in a fixture is what makes the regression assertion obvious.
 
 from __future__ import annotations
 
+import contextlib
+
 import pandas as pd
 import pytest
 
@@ -579,3 +581,32 @@ def test_write_snapshot_is_lap_addressable_and_reloadable(tmp_path):
     path = write_snapshot(payload, tmp_path, "monza", payload["current_lap"])
     assert path.name == "monza_lap02.json"
     assert load_snapshot(str(path)).circuit_id == "monza"
+
+
+def test_signalr_recorder_uses_overwrite_by_default_and_append_when_requested(tmp_path, monkeypatch):
+    from f1_sim.tuning import recording as rec_mod
+
+    calls: list[str] = []
+
+    class FakeSignalRClient:
+        def __init__(self, filename, *, filemode="w", timeout=60, logger=None):
+            calls.append(filemode)
+
+        def start(self):
+            raise RuntimeError("start should not be called during this test")
+
+    import fastf1.livetiming.client as lt_client
+
+    monkeypatch.setattr(lt_client, "SignalRClient", FakeSignalRClient)
+
+    r = rec_mod.SignalRRecorder(tmp_path / "live.txt")
+    with contextlib.suppress(RuntimeError):
+        r._run()
+    assert calls == ["w"]
+
+    calls.clear()
+    r2 = rec_mod.SignalRRecorder(tmp_path / "live2.txt", truncate=False)
+    with contextlib.suppress(RuntimeError):
+        r2._run()
+    assert calls == ["a"]
+

@@ -278,9 +278,15 @@ scripts/network_capture.py record
     --max-laps N             # stop once this lap is captured
     --at-lap N               # capture only this lap
     --recording PATH         # live recording file (default <out>/<circuit>_live.txt)
+    --append-recording       # append instead of truncating the recording (mid-session restart only)
     --recorder-timeout SECS  # give up if no message arrives for this long (default 60)
     --startup-wait SECS      # wait this long for the first message (default 30)
 ```
+
+- **Live (F1TV)**: the recorder writes raw SignalR messages to a text file
+  (`<circuit>_live.txt` by default). Fresh captures truncate the recording so
+  stale data from a previous run isn't mixed in. Use `--append-recording` only to
+  restart a live recording mid-session.
 
 ### Resume
 

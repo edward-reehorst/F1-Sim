@@ -105,6 +105,10 @@ class SignalRRecorder:
 
     Wraps ``SignalRClient``, whose ``start()`` blocks for the whole session. It
     runs in a daemon thread so the capture loop can poll the file it is writing.
+
+    By default, the recording file is truncated on start (``truncate=True``) so a
+    fresh capture does not append to stale data from a previous run. Set
+    ``truncate=False`` to append instead (e.g. restart recording mid-session).
     """
 
     def __init__(
@@ -113,10 +117,12 @@ class SignalRRecorder:
         *,
         timeout: int = 60,
         logger: Any | None = None,
+        truncate: bool = True,
     ) -> None:
         self.path = Path(path)
         self.timeout = timeout
         self._logger = logger
+        self._truncate = truncate
         self._client: Any | None = None
         self._thread: threading.Thread | None = None
         self._error: BaseException | None = None
@@ -132,7 +138,7 @@ class SignalRRecorder:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             self._client = SignalRClient(
                 str(self.path),
-                filemode="a",
+                filemode="w" if self._truncate else "a",
                 timeout=self.timeout,
                 logger=self._logger,
             )

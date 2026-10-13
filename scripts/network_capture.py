@@ -25,6 +25,12 @@ Usage::
         --year 2026 --gp italian \\
         --circuit monza --out out/snapshots --poll 5
 
+    # live: restart recording mid-session (append to existing recording)
+    uv run python scripts/network_capture.py record \\
+        --year 2026 --gp italian \\
+        --circuit monza --out out/snapshots --poll 5 \\
+        --append-recording
+
     # offline: replay a finished race, writing a snapshot per lap
     uv run python scripts/network_capture.py record \\
         --circuit monza --out out/snapshots \\
@@ -79,7 +85,11 @@ def build_source(args: argparse.Namespace) -> tuple[LiveSource, SignalRRecorder 
         )
 
     recording = Path(args.recording or (Path(args.out) / f"{args.circuit}_live.txt"))
-    recorder = SignalRRecorder(recording, timeout=args.recorder_timeout)
+    recorder = SignalRRecorder(
+        recording,
+        timeout=args.recorder_timeout,
+        truncate=not args.append_recording,
+    )
     recorder.start()
     print(f"recording live timing -> {recording}")
     print("waiting for the first messages (start this before the session begins)...")
@@ -141,10 +151,10 @@ def main(argv: list[str] | None = None) -> int:
         help="Live recording file (default: <out>/<circuit>_live.txt).",
     )
     record.add_argument(
-        "--recorder-timeout",
-        type=int,
-        default=60,
-        help="Seconds without a message before the recorder gives up.",
+        "--append-recording",
+        action="store_true",
+        help="Append to the existing live recording file instead of truncating it "
+        "(use only to restart recording mid-session).",
     )
     record.add_argument(
         "--startup-wait",
